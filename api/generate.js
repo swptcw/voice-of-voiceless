@@ -48,7 +48,7 @@ The tone should be contemplative, quietly profound, with the cadence of literary
 Begin the narrative directly in the object's voice.`;
 
   try {
-    // Try Claude Sonnet 4.5 first (newest model)
+    // Use correct Claude Sonnet 4.5 model name
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -57,7 +57,7 @@ Begin the narrative directly in the object's voice.`;
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4.5-20250514',  // Claude Sonnet 4.5
+        model: 'claude-sonnet-4-5-20250929',  // Correct model name!
         max_tokens: 2000,
         messages: [
           { role: 'user', content: prompt }
