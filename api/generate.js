@@ -1,5 +1,22 @@
+/**
+ * Voice of the Voiceless - Serverless API
+ * Copyright (c) 2025 Timothy Webber
+ * All Rights Reserved
+ * 
+ * Inspired by "Death of a Cigarette: A Story of Survival, Memory, and Legacy"
+ * Published September 13, 2025
+ * Copyright Registration: 1-15005430801
+ * 
+ * CONFIDENTIAL AND PROPRIETARY
+ * This prompt engineering methodology is a trade secret and proprietary to Timothy Webber.
+ * The specific instructions, structure, and style directives below are protected by
+ * copyright and trade secret law.
+ * 
+ * Unauthorized use, copying, modification, or disclosure is strictly prohibited.
+ */
+
 // api/generate.js
-// Vercel Serverless Function for Voice of the Voiceless
+// Vercel Serverless Function
 
 export default async function handler(req, res) {
   // Enable CORS
@@ -29,7 +46,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Object is required' });
   }
 
-  // Build the prompt
+  // Build the proprietary prompt (CONFIDENTIAL)
   const prompt = `You are a literary artist specializing in anthropomorphic narration, in the tradition of "Death of a Cigarette" where inanimate objects gain voice, memory, and philosophical depth.
 
 Object to anthropomorphize: ${object}

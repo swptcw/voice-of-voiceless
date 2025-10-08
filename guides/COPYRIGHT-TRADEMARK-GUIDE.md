@@ -163,7 +163,7 @@ Create `TERMS-OF-SERVICE.md`:
 ```markdown
 # Terms of Service - Voice of the Voiceless
 
-Last Updated: [Date]
+Last Updated: October 8, 2025
 
 ## 1. Acceptance of Terms
 By accessing Voice of the Voiceless, you agree to these terms.
@@ -188,7 +188,7 @@ This service is provided "as is" without warranties.
 We may modify these terms at any time.
 
 ## Contact
-For questions: [your email]
+For questions: tim@swptcw.com
 ```
 
 #### 4. Create Privacy Policy
@@ -198,7 +198,8 @@ Create `PRIVACY-POLICY.md`:
 ```markdown
 # Privacy Policy - Voice of the Voiceless
 
-Last Updated: [Date]
+Last Updated: October 8, 2025
+
 
 ## Information We Collect
 - We do not collect personal information
@@ -219,7 +220,7 @@ Last Updated: [Date]
 You have the right to request information deletion.
 
 ## Contact
-[Your email]
+tim@swptcw.com
 ```
 
 #### 5. Update README with License
@@ -236,7 +237,7 @@ and implementation are protected by copyright.
 
 **Inspired by "Death of a Cigarette"**
 
-For licensing inquiries: [your email]
+For licensing inquiries: tim@swptcw
 
 ### Third-Party Licenses
 - React: MIT License

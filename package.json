@@ -3,6 +3,10 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
+  "author": "Timothy Webber",
+  "license": "PROPRIETARY",
+  "description": "Give voice to inanimate objects through AI-powered anthropomorphic narration. Inspired by 'Death of a Cigarette: A Story of Survival, Memory, and Legacy'",
+  "copyright": "Copyright (c) 2025 Timothy Webber. All rights reserved. Copyright Registration: 1-15005430801",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",

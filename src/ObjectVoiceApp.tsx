@@ -1,3 +1,16 @@
+/**
+ * Voice of the Voiceless
+ * Copyright (c) 2025 Timothy Webber
+ * All Rights Reserved
+ * 
+ * Inspired by "Death of a Cigarette: A Story of Survival, Memory, and Legacy"
+ * Published September 13, 2025
+ * Copyright Registration: 1-15005430801
+ * 
+ * This software and its prompt engineering methodology are proprietary.
+ * Unauthorized copying, modification, or distribution is prohibited.
+ */
+
 import React, { useState } from 'react';
 import { Feather, Book, Sparkles, Loader } from 'lucide-react';
 
@@ -342,7 +355,7 @@ export default function ObjectVoiceApp() {
           </div>
         )}
 
-        {/* Footer */}
+        {/* Footer with Copyright */}
         <div style={{
           marginTop: '50px',
           textAlign: 'center',
@@ -350,10 +363,30 @@ export default function ObjectVoiceApp() {
           fontSize: '14px',
           fontStyle: 'italic'
         }}>
-          <p>Inspired by the anthropomorphic tradition of literary narration</p>
-          <p style={{ marginTop: '5px' }}>
+          <p style={{ marginBottom: '8px' }}>
+            Inspired by the anthropomorphic tradition of literary narration
+          </p>
+          <p style={{ marginTop: '8px', marginBottom: '12px' }}>
             "Sometimes the bravest act is simply to bear witness"
           </p>
+          <div style={{
+            marginTop: '20px',
+            paddingTop: '20px',
+            borderTop: '1px solid rgba(168, 152, 133, 0.3)',
+            fontSize: '12px',
+            color: '#a89885',
+            lineHeight: '1.6'
+          }}>
+            <p style={{ margin: '4px 0' }}>
+              © 2025 Timothy Webber. All rights reserved.
+            </p>
+            <p style={{ margin: '4px 0' }}>
+              Inspired by <em>Death of a Cigarette: A Story of Survival, Memory, and Legacy</em>
+            </p>
+            <p style={{ margin: '4px 0', fontSize: '11px', opacity: 0.8 }}>
+              Copyright Registration: 1-15005430801 • Published September 13, 2025
+            </p>
+          </div>
         </div>
       </div>
 

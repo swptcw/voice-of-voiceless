@@ -392,7 +392,7 @@ Leave these as default unless you need to change them.
 1. Expand "Environment Variables" section
 2. Add variable:
    - **Name:** `ANTHROPIC_API_KEY`
-   - **Value:** Your actual Anthropic API key (starts with `sk-ant-`)
+   - **Value:** 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
    - **Environment:** Production, Preview, Development (check all)
 3. Click "Add"
 
