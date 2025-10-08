@@ -9,14 +9,7 @@
  * 
  * CONFIDENTIAL AND PROPRIETARY
  * This prompt engineering methodology is a trade secret and proprietary to Timothy Webber.
- * The specific instructions, structure, and style directives below are protected by
- * copyright and trade secret law.
- * 
- * Unauthorized use, copying, modification, or disclosure is strictly prohibited.
  */
-
-// api/generate.js
-// Vercel Serverless Function
 
 export default async function handler(req, res) {
   // Enable CORS
@@ -39,6 +32,17 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // Check if API key exists
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  
+  if (!apiKey) {
+    console.error('ANTHROPIC_API_KEY not found in environment');
+    return res.status(500).json({ 
+      error: 'Server configuration error',
+      details: 'API key not configured'
+    });
+  }
+
   // Get request data
   const { object, context } = req.body;
   
@@ -46,7 +50,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Object is required' });
   }
 
-  // Build the proprietary prompt (CONFIDENTIAL)
+  // Build the prompt
   const prompt = `You are a literary artist specializing in anthropomorphic narration, in the tradition of "Death of a Cigarette" where inanimate objects gain voice, memory, and philosophical depth.
 
 Object to anthropomorphize: ${object}
@@ -66,13 +70,15 @@ The tone should be contemplative, quietly profound, with the cadence of literary
 Begin the narrative directly in the object's voice.`;
 
   try {
-    // Call Anthropic API
+    console.log('Calling Anthropic API with key starting with:', apiKey.substring(0, 10) + '...');
+    
+    // Call Anthropic API with correct headers
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01'
+        'anthropic-version': '2023-06-01',
+        'x-api-key': apiKey.trim()  // Trim any whitespace
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
@@ -83,13 +89,30 @@ Begin the narrative directly in the object's voice.`;
       })
     });
 
+    console.log('API Response status:', response.status);
+
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Anthropic API Error:', errorData);
-      throw new Error(errorData.error?.message || 'Failed to generate narrative');
+      const errorText = await response.text();
+      console.error('Anthropic API Error Response:', errorText);
+      
+      let errorData;
+      try {
+        errorData = JSON.parse(errorText);
+      } catch (e) {
+        errorData = { error: { message: errorText } };
+      }
+      
+      return res.status(500).json({ 
+        error: 'API request failed',
+        details: errorData.error?.message || errorText,
+        status: response.status,
+        keyPrefix: apiKey.substring(0, 15) + '...'  // Show more of key for debugging
+      });
     }
 
     const data = await response.json();
+    console.log('Successfully generated narrative');
+    
     const narrative = data.content[0].text;
 
     // Return successful response
@@ -100,10 +123,10 @@ Begin the narrative directly in the object's voice.`;
     });
 
   } catch (error) {
-    console.error('Error generating narrative:', error);
+    console.error('Error in handler:', error);
     return res.status(500).json({ 
       error: 'Unable to generate narrative. Please try again.',
-      message: error.message 
+      message: error.message
     });
   }
 }
