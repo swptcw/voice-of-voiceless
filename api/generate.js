@@ -2,13 +2,6 @@
  * Voice of the Voiceless - Serverless API
  * Copyright (c) 2025 Timothy Webber
  * All Rights Reserved
- * 
- * Inspired by "Death of a Cigarette: A Story of Survival, Memory, and Legacy"
- * Published September 13, 2025
- * Copyright Registration: 1-15005430801
- * 
- * CONFIDENTIAL AND PROPRIETARY
- * This prompt engineering methodology is a trade secret and proprietary to Timothy Webber.
  */
 
 export default async function handler(req, res) {
@@ -21,36 +14,21 @@ export default async function handler(req, res) {
     'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
   );
 
-  // Handle preflight
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
   }
 
-  // Only accept POST requests
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Check if API key exists
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  
-  if (!apiKey) {
-    console.error('ANTHROPIC_API_KEY not found in environment');
-    return res.status(500).json({ 
-      error: 'Server configuration error',
-      details: 'API key not configured'
-    });
-  }
-
-  // Get request data
   const { object, context } = req.body;
   
   if (!object || !object.trim()) {
     return res.status(400).json({ error: 'Object is required' });
   }
 
-  // Build the prompt
   const prompt = `You are a literary artist specializing in anthropomorphic narration, in the tradition of "Death of a Cigarette" where inanimate objects gain voice, memory, and philosophical depth.
 
 Object to anthropomorphize: ${object}
@@ -70,18 +48,16 @@ The tone should be contemplative, quietly profound, with the cadence of literary
 Begin the narrative directly in the object's voice.`;
 
   try {
-    console.log('Calling Anthropic API with key starting with:', apiKey.substring(0, 10) + '...');
-    
-    // Call Anthropic API with correct headers
+    // Use Claude 3.5 Sonnet (stable, known model)
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'anthropic-version': '2023-06-01',
-        'x-api-key': apiKey.trim()  // Trim any whitespace
+        'content-type': 'application/json',
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-3-5-sonnet-20241022',  // Changed to known working model
         max_tokens: 2000,
         messages: [
           { role: 'user', content: prompt }
@@ -89,33 +65,18 @@ Begin the narrative directly in the object's voice.`;
       })
     });
 
-    console.log('API Response status:', response.status);
-
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Anthropic API Error Response:', errorText);
-      
-      let errorData;
-      try {
-        errorData = JSON.parse(errorText);
-      } catch (e) {
-        errorData = { error: { message: errorText } };
-      }
-      
+      const errorData = await response.json();
+      console.error('Anthropic API Error:', errorData);
       return res.status(500).json({ 
-        error: 'API request failed',
-        details: errorData.error?.message || errorText,
-        status: response.status,
-        keyPrefix: apiKey.substring(0, 15) + '...'  // Show more of key for debugging
+        error: 'Unable to generate narrative. Please try again.',
+        details: errorData.error?.message || 'API request failed'
       });
     }
 
     const data = await response.json();
-    console.log('Successfully generated narrative');
-    
     const narrative = data.content[0].text;
 
-    // Return successful response
     return res.status(200).json({ 
       narrative,
       object,
@@ -123,10 +84,10 @@ Begin the narrative directly in the object's voice.`;
     });
 
   } catch (error) {
-    console.error('Error in handler:', error);
+    console.error('Error generating narrative:', error);
     return res.status(500).json({ 
       error: 'Unable to generate narrative. Please try again.',
-      message: error.message
+      message: error.message 
     });
   }
 }
