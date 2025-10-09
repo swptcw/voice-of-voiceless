@@ -330,7 +330,7 @@ export default function ObjectVoiceApp() {
             <p style={{
               fontSize: '14px',
               marginBottom: '12px',
-              opacity: 0.8'
+              opacity: 0.8
             }}>
               Try these examples:
             </p>
@@ -465,7 +465,7 @@ export default function ObjectVoiceApp() {
             <p style={{ margin: '4px 0' }}>
               Inspired by <em>Death of a Cigarette: A Story of Survival, Memory, and Legacy</em>
             </p>
-            <p style={{ margin: '4px 0', fontSize: '11px', opacity: 0.8' }}>
+            <p style={{ margin: '4px 0', fontSize: '11px', opacity: 0.8 }}>
               Copyright Registration: 1-15005430801 • Published September 13, 2025
             </p>
           </div>
