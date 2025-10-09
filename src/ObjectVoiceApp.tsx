@@ -2,17 +2,10 @@
  * Voice of the Voiceless
  * Copyright (c) 2025 Timothy Webber
  * All Rights Reserved
- * 
- * Inspired by "Death of a Cigarette: A Story of Survival, Memory, and Legacy"
- * Published September 13, 2025
- * Copyright Registration: 1-15005430801
- * 
- * This software and its prompt engineering methodology are proprietary.
- * Unauthorized copying, modification, or distribution is prohibited.
  */
 
 import React, { useState } from 'react';
-import { Feather, Book, Sparkles, Loader } from 'lucide-react';
+import { Feather, Book, Sparkles, Loader, AlertCircle } from 'lucide-react';
 
 export default function ObjectVoiceApp() {
   const [object, setObject] = useState('');
@@ -20,6 +13,8 @@ export default function ObjectVoiceApp() {
   const [narrative, setNarrative] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [usage, setUsage] = useState<{used: number, remaining: number, limit: number} | null>(null);
+  const [limitReached, setLimitReached] = useState(false);
 
   const generateVoice = async () => {
     if (!object.trim()) {
@@ -30,6 +25,7 @@ export default function ObjectVoiceApp() {
     setLoading(true);
     setError('');
     setNarrative('');
+    setLimitReached(false);
 
     try {
       const response = await fetch('/api/generate', {
@@ -43,13 +39,21 @@ export default function ObjectVoiceApp() {
         })
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to generate narrative');
+      const data = await response.json();
+
+      if (response.status === 429) {
+        // Limit reached
+        setLimitReached(true);
+        setError(data.message || 'Free limit reached');
+        return;
       }
 
-      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to generate narrative');
+      }
+
       setNarrative(data.narrative);
+      setUsage(data.usage);
     } catch (err: any) {
       setError(err.message || 'Unable to generate narrative. Please try again.');
       console.error(err);
@@ -119,6 +123,80 @@ export default function ObjectVoiceApp() {
           </p>
         </div>
 
+        {/* Usage Counter */}
+        {usage && usage.remaining >= 0 && !limitReached && (
+          <div style={{
+            textAlign: 'center',
+            marginBottom: '20px',
+            padding: '10px',
+            background: 'rgba(212, 196, 180, 0.1)',
+            borderRadius: '8px',
+            border: '1px solid rgba(212, 196, 180, 0.3)',
+            color: '#d4c4b4',
+            fontSize: '14px'
+          }}>
+            {usage.remaining} free {usage.remaining === 1 ? 'narrative' : 'narratives'} remaining today
+          </div>
+        )}
+
+        {/* Limit Reached Message */}
+        {limitReached && (
+          <div style={{
+            background: 'rgba(244, 232, 216, 0.95)',
+            border: '2px solid #8b7355',
+            borderRadius: '12px',
+            padding: '30px',
+            marginBottom: '30px',
+            textAlign: 'center'
+          }}>
+            <AlertCircle size={48} color="#8b7355" style={{ marginBottom: '15px' }} />
+            <h2 style={{
+              fontSize: '24px',
+              color: '#2c3e37',
+              marginBottom: '15px',
+              fontWeight: 'normal'
+            }}>
+              Daily Limit Reached
+            </h2>
+            <p style={{
+              fontSize: '16px',
+              color: '#2c3e37',
+              lineHeight: '1.6',
+              marginBottom: '20px'
+            }}>
+              You've used your 3 free narratives for today. 
+              <br />
+              Come back tomorrow, or contact me for unlimited access.
+            </p>
+            <a 
+              href="mailto:tim@swptcw.com?subject=Voice%20of%20the%20Voiceless%20-%20Request%20Access&body=Hi%2C%0A%0AI%27d%20like%20to%20request%20unlimited%20access%20to%20Voice%20of%20the%20Voiceless.%0A%0AThank%20you!"
+              style={{
+                display: 'inline-block',
+                padding: '12px 24px',
+                background: '#8b7355',
+                color: '#f4e8d8',
+                textDecoration: 'none',
+                borderRadius: '6px',
+                fontSize: '16px',
+                fontFamily: 'Georgia, serif',
+                transition: 'background 0.3s'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.background = '#a08968'}
+              onMouseOut={(e) => e.currentTarget.style.background = '#8b7355'}
+            >
+              Request Unlimited Access
+            </a>
+            <p style={{
+              fontSize: '14px',
+              color: '#8b7355',
+              marginTop: '15px',
+              fontStyle: 'italic'
+            }}>
+              Resets in 24 hours
+            </p>
+          </div>
+        )}
+
         {/* Input Section */}
         <div style={{
           background: 'rgba(244, 232, 216, 0.05)',
@@ -126,7 +204,9 @@ export default function ObjectVoiceApp() {
           borderRadius: '12px',
           padding: '30px',
           marginBottom: '30px',
-          border: '1px solid rgba(212, 196, 180, 0.2)'
+          border: '1px solid rgba(212, 196, 180, 0.2)',
+          opacity: limitReached ? 0.5 : 1,
+          pointerEvents: limitReached ? 'none' : 'auto'
         }}>
           <div style={{ marginBottom: '20px' }}>
             <label style={{
@@ -145,6 +225,7 @@ export default function ObjectVoiceApp() {
               onChange={(e) => setObject(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="a pocket watch, a typewriter key, a bookmark..."
+              disabled={limitReached}
               style={{
                 width: '100%',
                 padding: '15px',
@@ -175,6 +256,7 @@ export default function ObjectVoiceApp() {
               onChange={(e) => setContext(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="its history, location, relationship to someone..."
+              disabled={limitReached}
               style={{
                 width: '100%',
                 padding: '12px',
@@ -191,25 +273,25 @@ export default function ObjectVoiceApp() {
 
           <button
             onClick={generateVoice}
-            disabled={loading}
+            disabled={loading || limitReached}
             style={{
               width: '100%',
               padding: '15px',
               fontSize: '18px',
               fontFamily: 'Georgia, serif',
-              background: loading ? '#6a5847' : '#8b7355',
+              background: loading || limitReached ? '#6a5847' : '#8b7355',
               color: '#f4e8d8',
               border: 'none',
               borderRadius: '8px',
-              cursor: loading ? 'not-allowed' : 'pointer',
+              cursor: loading || limitReached ? 'not-allowed' : 'pointer',
               transition: 'background 0.3s',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '10px'
             }}
-            onMouseOver={(e) => !loading && (e.currentTarget.style.background = '#a08968')}
-            onMouseOut={(e) => !loading && (e.currentTarget.style.background = '#8b7355')}
+            onMouseOver={(e) => !loading && !limitReached && (e.currentTarget.style.background = '#a08968')}
+            onMouseOut={(e) => !loading && !limitReached && (e.currentTarget.style.background = '#8b7355')}
           >
             {loading ? (
               <>
@@ -224,7 +306,7 @@ export default function ObjectVoiceApp() {
             )}
           </button>
 
-          {error && (
+          {error && !limitReached && (
             <div style={{
               marginTop: '15px',
               padding: '12px',
@@ -240,7 +322,7 @@ export default function ObjectVoiceApp() {
         </div>
 
         {/* Examples */}
-        {!narrative && !loading && (
+        {!narrative && !loading && !limitReached && (
           <div style={{
             marginBottom: '30px',
             color: '#d4c4b4'
@@ -248,7 +330,7 @@ export default function ObjectVoiceApp() {
             <p style={{
               fontSize: '14px',
               marginBottom: '12px',
-              opacity: 0.8
+              opacity: 0.8'
             }}>
               Try these examples:
             </p>
@@ -383,7 +465,7 @@ export default function ObjectVoiceApp() {
             <p style={{ margin: '4px 0' }}>
               Inspired by <em>Death of a Cigarette: A Story of Survival, Memory, and Legacy</em>
             </p>
-            <p style={{ margin: '4px 0', fontSize: '11px', opacity: 0.8 }}>
+            <p style={{ margin: '4px 0', fontSize: '11px', opacity: 0.8' }}>
               Copyright Registration: 1-15005430801 • Published September 13, 2025
             </p>
           </div>

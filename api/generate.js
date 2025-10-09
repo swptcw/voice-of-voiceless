@@ -4,6 +4,22 @@
  * All Rights Reserved
  */
 
+// Simple in-memory rate limiting
+// Note: Resets on each deployment, but good enough for soft launch
+const usageTracker = new Map();
+
+// Clean up old entries every hour
+setInterval(() => {
+  const now = Date.now();
+  const oneDay = 24 * 60 * 60 * 1000;
+  
+  for (const [ip, data] of usageTracker.entries()) {
+    if (now - data.firstUse > oneDay) {
+      usageTracker.delete(ip);
+    }
+  }
+}, 60 * 60 * 1000);
+
 export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -21,6 +37,40 @@ export default async function handler(req, res) {
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  // Get IP address
+  const ip = req.headers['x-forwarded-for']?.split(',')[0] || 
+             req.headers['x-real-ip'] || 
+             'unknown';
+
+  // Check usage
+  const now = Date.now();
+  const oneDay = 24 * 60 * 60 * 1000;
+  const freeLimit = 3;
+
+  let usage = usageTracker.get(ip);
+  
+  if (!usage) {
+    usage = { count: 0, firstUse: now };
+    usageTracker.set(ip, usage);
+  }
+
+  // Reset if more than 24 hours
+  if (now - usage.firstUse > oneDay) {
+    usage = { count: 0, firstUse: now };
+    usageTracker.set(ip, usage);
+  }
+
+  // Check if limit reached
+  if (usage.count >= freeLimit) {
+    return res.status(429).json({ 
+      error: 'free_limit_reached',
+      message: 'You\'ve reached your 3 free narratives for today.',
+      remaining: 0,
+      resetIn: Math.ceil((oneDay - (now - usage.firstUse)) / 1000 / 60 / 60), // hours
+      upgradeUrl: 'mailto:tim@swptcw.com?subject=Voice%20of%20the%20Voiceless%20Access'
+    });
   }
 
   const { object, context } = req.body;
@@ -48,7 +98,6 @@ The tone should be contemplative, quietly profound, with the cadence of literary
 Begin the narrative directly in the object's voice.`;
 
   try {
-    // Use correct Claude Sonnet 4.5 model name
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -57,7 +106,7 @@ Begin the narrative directly in the object's voice.`;
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5-20250929',  // Correct model name!
+        model: 'claude-sonnet-4-5-20250929',
         max_tokens: 2000,
         messages: [
           { role: 'user', content: prompt }
@@ -77,10 +126,20 @@ Begin the narrative directly in the object's voice.`;
     const data = await response.json();
     const narrative = data.content[0].text;
 
+    // Increment usage counter
+    usage.count++;
+    usageTracker.set(ip, usage);
+
+    // Return success with usage info
     return res.status(200).json({ 
       narrative,
       object,
-      context: context || null
+      context: context || null,
+      usage: {
+        used: usage.count,
+        remaining: freeLimit - usage.count,
+        limit: freeLimit
+      }
     });
 
   } catch (error) {
